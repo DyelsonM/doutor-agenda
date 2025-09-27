@@ -1,6 +1,6 @@
 ### Doutor Agenda
 
-Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, React 19, BetterAuth, Drizzle ORM e PostgreSQL. Inclui autenticação (e-mail/senha e Google), gestão de clínicas, médicos, pacientes e agendamentos, assinatura via Stripe e UI consistente com componentes reutilizáveis.
+Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, React 19, BetterAuth, Drizzle ORM e PostgreSQL. Inclui autenticação (e-mail/senha e Google), gestão de clínicas, médicos, pacientes e agendamentos, com UI consistente e componentes reutilizáveis.
 
 ### Sumário
 
@@ -16,8 +16,7 @@ Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (A
 ### Visão geral
 
 - **Domínio**: clínicas possuem médicos e pacientes; pacientes fazem agendamentos com médicos. Disponibilidades de médicos são definidas por faixa de dias da semana e janelas de horário.
-- **Autenticação**: BetterAuth com e-mail/senha e Google OAuth. A sessão é enriquecida com informações do plano e clínica do usuário.
-- **Assinatura**: integração com Stripe Checkout para contratar o plano.
+- **Autenticação**: BetterAuth com e-mail/senha e Google OAuth. A sessão é enriquecida com informações da clínica do usuário.
 - **UI/UX**: Tailwind + shadcn/ui; formulários com React Hook Form e validação com Zod; feedback com Sonner.
 
 ### Stack e ferramentas
@@ -33,7 +32,6 @@ Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (A
 - **Datas**: [dayjs](https://day.js.org/) (plugins `utc` e `timezone`)
 - **Auth**: [BetterAuth](https://www.better-auth.com/) (com Drizzle adapter)
 - **Banco**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team/)
-- **Pagamentos**: [Stripe](https://stripe.com/)
 - **Ações seguras**: [next-safe-action](https://next-safe-action.dev/)
 - **Qualidade**: ESLint (simple-import-sort), Prettier (plugin Tailwind)
 
@@ -44,7 +42,6 @@ src/
   app/                         # App Router (rotas e layouts)
     authentication/            # Tela de login e cadastro
     (protected)/               # Área logada (dashboard, doctors, patients, appointments, etc.)
-    new-subscription/          # Fluxo de assinatura
     api/                       # Rotas API (se necessário)
     layout.tsx                 # Layout raiz (fontes, providers)
     globals.css                # Tailwind 4 + tokens de tema
@@ -54,7 +51,6 @@ src/
     get-available-times/       # Ex.: horários disponíveis
     delete-appointment/        # Ex.: deletar agendamento
     create-clinic/             # Ex.: onboarding de clínica
-    create-stripe-checkout/    # Ex.: checkout Stripe
   components/
     ui/                        # Componentes de UI (shadcn/ui adaptados)
       page-container.tsx       # Container padrão de páginas
@@ -83,7 +79,7 @@ src/
   - Conexão em `src/db/index.ts` usando `drizzle(process.env.DATABASE_URL)`.
 - **Autenticação**:
   - BetterAuth com adapter Drizzle e provider social Google.
-  - Sessão personalizada via `customSession` para incluir `plan` e clínica atual do usuário.
+  - Sessão personalizada via `customSession` para incluir clínica atual do usuário.
   - Cliente no front em `src/lib/auth-client.ts` (métodos `signIn`, `signUp`, `signIn.social`).
 - **Disponibilidade e agenda**:
   - Médicos possuem disponibilidade por faixa de dias da semana e janelas de horário (`availableFromWeekDay`/`availableToWeekDay` e `availableFromTime`/`availableToTime`).
@@ -105,8 +101,6 @@ DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DB
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 
-# Stripe
-STRIPE_SECRET_KEY=sk_live_or_test...
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -114,7 +108,6 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Observações:
 
-- O preço do produto no Stripe está referenciado diretamente na criação do checkout (chave `price`); ajuste conforme seu preço em `src/actions/create-stripe-checkout/index.ts`.
 - Em produção, atualize `NEXT_PUBLIC_APP_URL` e todas as chaves nos providers.
 
 ### Como rodar localmente
@@ -161,7 +154,6 @@ Acesse `http://localhost:3000`.
 ### Integrações
 
 - **BetterAuth**: ver `src/lib/auth.ts` e `src/lib/auth-client.ts`. Ao adicionar novos campos ao usuário, declará-los em `additionalFields`.
-- **Stripe**: ver `src/actions/create-stripe-checkout`. Ajuste `price` conforme o preço criado no painel da Stripe.
 - **Drizzle**: ver `drizzle.config.ts` e `src/db/schema.ts`. Use `npx drizzle-kit push` para aplicar o esquema.
 
 ### Contribuição
