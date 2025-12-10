@@ -1,171 +1,124 @@
-### Doutor Agenda
+# 🏥 Doutor Agenda
 
-Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, React 19, BetterAuth, Drizzle ORM e PostgreSQL. Inclui autenticação (e-mail/senha e Google), gestão de clínicas, médicos, pacientes e agendamentos, com UI consistente e componentes reutilizáveis.
+Sistema completo de gestão de agendamentos para clínicas médicas, desenvolvido com Next.js 15, TypeScript, PostgreSQL e Drizzle ORM.
 
-### Sumário
+## ✨ Funcionalidades
 
-- **Visão geral**
-- **Stack e ferramentas**
-- **Estrutura de diretórios**
-- **Arquitetura e fluxos principais**
-- **Variáveis de ambiente**
-- **Como rodar localmente**
-- **Scripts úteis**
-- **Padrões e convenções**
+### 🔐 Autenticação
+- Login e cadastro de usuários
+- Autenticação via email/senha e Google OAuth
+- Proteção de rotas e sessões
 
-### Visão geral
+### 🏢 Gestão de Clínica
+- Cadastro e configuração de clínica
+- Multi-tenancy (cada usuário gerencia sua própria clínica)
 
-- **Domínio**: clínicas possuem médicos e pacientes; pacientes fazem agendamentos com médicos. Disponibilidades de médicos são definidas por faixa de dias da semana e janelas de horário.
-- **Autenticação**: BetterAuth com e-mail/senha e Google OAuth. A sessão é enriquecida com informações da clínica do usuário.
-- **UI/UX**: Tailwind + shadcn/ui; formulários com React Hook Form e validação com Zod; feedback com Sonner.
+### 📊 Dashboard
+- **Métricas em tempo real:**
+  - Faturamento total
+  - Total de agendamentos
+  - Número de pacientes
+  - Quantidade de médicos
+- **Gráficos e relatórios:**
+  - Gráfico de agendamentos diários
+  - Top 10 médicos mais consultados
+  - Top especialidades mais procuradas
+  - Agendamentos do dia atual
+- Filtro por período (data inicial e final)
 
-### Stack e ferramentas
+### 👨‍⚕️ Gestão de Médicos
+- Cadastro, edição e exclusão de médicos
+- Configuração de disponibilidade:
+  - Dias da semana de atendimento
+  - Horário de início e fim
+  - Especialidade médica
+- Visualização em cards com informações completas
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **Linguagem**: TypeScript (strict)
-- **UI**: [Tailwind CSS 4](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [lucide-react](https://lucide.dev/)
-- **Formulários**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) + `@hookform/resolvers`
-- **Estado remoto**: [TanStack Query](https://tanstack.com/query/latest) (React Query)
-- **URL state**: [nuqs](https://github.com/47ng/nuqs)
-- **Toasts**: [sonner](https://sonner.emilkowal.ski/)
-- **Gráficos**: [Recharts](https://recharts.org/)
-- **Datas**: [dayjs](https://day.js.org/) (plugins `utc` e `timezone`)
-- **Auth**: [BetterAuth](https://www.better-auth.com/) (com Drizzle adapter)
-- **Banco**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team/)
-- **Ações seguras**: [next-safe-action](https://next-safe-action.dev/)
-- **Qualidade**: ESLint (simple-import-sort), Prettier (plugin Tailwind)
+### 👤 Gestão de Pacientes
+- Cadastro, edição e exclusão de pacientes
+- Armazenamento de dados pessoais (nome, telefone, email, etc.)
+- Visualização em tabela formatada
 
-### Estrutura de diretórios
+### 📅 Gestão de Agendamentos
+- **Criação inteligente de agendamentos:**
+  - Seleção de paciente e médico
+  - Busca automática de horários disponíveis
+  - Validação de conflitos de horário
+  - Definição de valor da consulta
+- Edição e exclusão de agendamentos
+- Visualização em tabela com formatação de datas e valores
+- Filtros e organização por data
 
-```
-src/
-  app/                         # App Router (rotas e layouts)
-    authentication/            # Tela de login e cadastro
-    (protected)/               # Área logada (dashboard, doctors, patients, appointments, etc.)
-    api/                       # Rotas API (se necessário)
-    layout.tsx                 # Layout raiz (fontes, providers)
-    globals.css                # Tailwind 4 + tokens de tema
-  actions/                     # Server Actions (next-safe-action)
-    upsert-doctor/             # Ex.: criar/editar médico
-    add-appointment/           # Ex.: criar agendamento
-    get-available-times/       # Ex.: horários disponíveis
-    delete-appointment/        # Ex.: deletar agendamento
-    create-clinic/             # Ex.: onboarding de clínica
-  components/
-    ui/                        # Componentes de UI (shadcn/ui adaptados)
-      page-container.tsx       # Container padrão de páginas
-      form.tsx                 # Wrapper RHF + shadcn
-      ...
-  db/
-    schema.ts                  # Esquema Drizzle (tabelas e relações)
-    index.ts                   # Cliente Drizzle (conexão Postgres)
-  helpers/
-    time.ts                    # Geração de time slots (intervalos de 30min)
-  lib/
-    auth.ts                    # Config BetterAuth (drizzleAdapter, plugins)
-    auth-client.ts             # Cliente BetterAuth no front
-    next-safe-action.ts        # Cliente padrão de ações seguras
-    utils.ts                   # Funções utilitárias (cn)
-  providers/
-    react-query.tsx            # Provider do React Query
-```
+### ⏰ Sistema de Disponibilidade
+- **Validação automática de horários:**
+  - Verifica dias da semana configurados para cada médico
+  - Filtra horários dentro da janela de disponibilidade
+  - Marca horários já agendados como indisponíveis
+  - Gera slots de 30 em 30 minutos (05:00 às 23:30)
+- Prevenção de agendamentos duplicados
+- Validação em tempo real antes de confirmar
 
-### Arquitetura e fluxos principais
+## 🛠️ Stack Tecnológica
 
-- **App Router**: páginas em `src/app`, com `layout.tsx` global registrando fonte, React Query Provider, `NuqsAdapter` e `Toaster`.
-- **Server Actions**: centralizadas em `src/actions`, sempre usando `next-safe-action` com schema Zod, autenticação via `auth.api.getSession`, e `revalidatePath` após mutações.
-- **Banco de dados**:
-  - Esquema em `src/db/schema.ts` com tabelas: `users`, `sessions`, `accounts`, `verifications`, `clinics`, `users_to_clinics`, `doctors`, `patients`, `appointments`.
-  - Conexão em `src/db/index.ts` usando `drizzle(process.env.DATABASE_URL)`.
-- **Autenticação**:
-  - BetterAuth com adapter Drizzle e provider social Google.
-  - Sessão personalizada via `customSession` para incluir clínica atual do usuário.
-  - Cliente no front em `src/lib/auth-client.ts` (métodos `signIn`, `signUp`, `signIn.social`).
-- **Disponibilidade e agenda**:
-  - Médicos possuem disponibilidade por faixa de dias da semana e janelas de horário (`availableFromWeekDay`/`availableToWeekDay` e `availableFromTime`/`availableToTime`).
-  - Geração de horários em `helpers/time.ts` (de 05:00 a 23:30 a cada 30min).
-  - Cálculos de horários consideram UTC/local com dayjs.
-- **UI e formulários**:
-  - Componentes shadcn/ui personalizados em `src/components/ui` (e.g., `button`, `dialog`, `select`, `table`, `sidebar`, `form`).
-  - Formulários usando RHF + Zod + `Form` do shadcn. Máscaras com `react-number-format`.
+- **Next.js 15** (App Router) - Framework React
+- **TypeScript** - Tipagem estática
+- **PostgreSQL** - Banco de dados relacional
+- **Drizzle ORM** - ORM type-safe
+- **BetterAuth** - Autenticação (email/senha + Google OAuth)
+- **React Hook Form + Zod** - Formulários e validação
+- **TanStack Query** - Gerenciamento de estado
+- **Recharts** - Gráficos e visualizações
+- **shadcn/ui** - Componentes UI modernos
+- **dayjs** - Manipulação de datas
+- **next-safe-action** - Server Actions type-safe
 
-### Variáveis de ambiente
+## 🚀 Início Rápido
 
-Crie um arquivo `.env` na raiz com:
+```bash
+# 1. Instalar dependências
+npm install
 
-```
-# Banco de dados
+# 2. Configurar variáveis de ambiente (.env)
 DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DB
-
-# Auth (Google OAuth)
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
-
-
-# App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
 
-Observações:
-
-- Em produção, atualize `NEXT_PUBLIC_APP_URL` e todas as chaves nos providers.
-
-### Como rodar localmente
-
-1. Instale dependências
-
-```bash
-npm install
-```
-
-2. Configure `.env` (veja seção acima)
-
-3. Suba o esquema do banco (Drizzle)
-
-```bash
+# 3. Configurar banco de dados
 npx drizzle-kit push
-```
 
-4. Rode o servidor de desenvolvimento
-
-```bash
+# 4. Executar aplicação
 npm run dev
 ```
 
-Acesse `http://localhost:3000`.
+## 📁 Estrutura do Projeto
 
-### Scripts úteis
+```
+src/
+  app/
+    (protected)/          # Rotas protegidas
+      dashboard/          # Dashboard com métricas
+      appointments/       # Gestão de agendamentos
+      doctors/            # Gestão de médicos
+      patients/           # Gestão de pacientes
+      clinic-form/        # Formulário de clínica
+    authentication/       # Login e cadastro
+    api/                  # API REST
+  actions/                # Server Actions
+  components/ui/          # Componentes reutilizáveis
+  db/                     # Schema e conexão do banco
+  helpers/                # Funções utilitárias
+```
 
-- `npm run dev`: inicia o servidor de desenvolvimento
-- `npm run build`: build de produção
-- `npm run start`: inicia o servidor em produção
-- `npm run lint`: verifica o lint (ESLint + simple-import-sort)
+## 🔑 Destaques Técnicos
 
-### Padrões e convenções
+- **Type-safety end-to-end** com TypeScript e Drizzle ORM
+- **Server Actions** para operações no servidor
+- **Validação inteligente** de disponibilidade de horários
+- **Interface responsiva** e moderna
+- **Multi-tenancy** com isolamento de dados por clínica
+- **Cache e revalidação** otimizados com Next.js
 
-- **TypeScript**: `strict: true`. Alias de importação `@/*` aponta para `src/*` (veja `tsconfig.json`).
-- **Estilo de código**: Prettier com `prettier-plugin-tailwindcss`. ESLint com `simple-import-sort` para ordenação automática de imports/exports.
-- **Nomenclatura**: kebab-case para pastas/arquivos; nomes de variáveis claros e descritivos.
-- **UI**: sempre usar Tailwind e componentes shadcn/ui; páginas devem usar `PageContainer` quando aplicável.
-- **Formulários**: RHF + Zod. Use o wrapper `src/components/ui/form.tsx` para consistência.
-- **Server Actions**: manter em `src/actions`, usar `next-safe-action` + schemas Zod e `useAction` no client.
-- **Datas/horários**: `dayjs` para parsing/format e conversões UTC/local. Horários de médicos são strings `HH:mm:ss`; datas de agendamentos são `timestamp`.
+---
 
-### Integrações
-
-- **BetterAuth**: ver `src/lib/auth.ts` e `src/lib/auth-client.ts`. Ao adicionar novos campos ao usuário, declará-los em `additionalFields`.
-- **Drizzle**: ver `drizzle.config.ts` e `src/db/schema.ts`. Use `npx drizzle-kit push` para aplicar o esquema.
-
-### Contribuição
-
-- Padronize imports (salve com format). Evite duplicidade de código; prefira componentes/funções reutilizáveis.
-- Ao criar novas páginas internas, crie componentes específicos em `_components` dentro da rota.
-- Revalide páginas após mutações com `revalidatePath` quando necessário.
-
-### Requisitos
-
-- Node.js 18.18+ (recomendado 20+)
-- PostgreSQL 14+
-
-—
-Para dúvidas ou melhorias, abra uma issue ou PR seguindo as convenções acima.
+**Sistema completo e profissional para gestão de agendamentos médicos.**
