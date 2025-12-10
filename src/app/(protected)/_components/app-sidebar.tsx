@@ -30,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 
 const items = [
@@ -106,13 +107,18 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <div className="flex items-center px-2 py-1">
+              <ThemeToggle />
+            </div>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
                   <Avatar className="border-2 border-border">
                     <AvatarFallback>{clinicInitials}</AvatarFallback>
                   </Avatar>
-                  <div>
+                  <div className="flex-1 text-left">
                     <p className="text-sm">
                       {session.data?.user?.clinic?.name}
                     </p>
