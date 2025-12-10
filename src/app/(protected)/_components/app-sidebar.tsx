@@ -69,6 +69,16 @@ export function AppSidebar() {
       },
     });
   };
+
+  const clinicInitials = session.data?.user?.clinic?.name
+    ? session.data.user.clinic.name
+        .split(" ")
+        .map((name) => name[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "";
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
@@ -99,8 +109,8 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
-                  <Avatar>
-                    <AvatarFallback>F</AvatarFallback>
+                  <Avatar className="border-2 border-border">
+                    <AvatarFallback>{clinicInitials}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm">

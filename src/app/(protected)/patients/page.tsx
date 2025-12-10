@@ -46,7 +46,13 @@ const PatientsPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <DataTable data={patients} columns={patientsTableColumns} />
+        {patients.length > 0 ? (
+          <DataTable data={patients} columns={patientsTableColumns} />
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-md border text-center text-muted-foreground">
+            No Results
+          </div>
+        )}
       </PageContent>
     </PageContainer>
   );
