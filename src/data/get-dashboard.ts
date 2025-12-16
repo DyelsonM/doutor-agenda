@@ -3,6 +3,7 @@ import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
+import { processStatsParallel } from "@/lib/opencl/stats-processor";
 
 interface Params {
   from: string;
@@ -133,6 +134,18 @@ export const getDashboard = async ({ from, to, session }: Params) => {
       .groupBy(sql`DATE(${appointmentsTable.date})`)
       .orderBy(sql`DATE(${appointmentsTable.date})`),
   ]);
+
+  // Processar estatísticas usando OpenCL em paralelo
+  const processedStats = await processStatsParallel({
+    dailyData: dailyAppointmentsData.map((item) => ({
+      date: item.date,
+      appointments: item.appointments,
+      revenue: item.revenue,
+    })),
+    startDate: chartStartDate,
+    endDate: chartEndDate,
+  });
+
   return {
     totalRevenue,
     totalAppointments,
@@ -142,5 +155,6 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     topSpecialties,
     todayAppointments,
     dailyAppointmentsData,
+    processedStats, // Estatísticas processadas em paralelo com OpenCL
   };
 };
