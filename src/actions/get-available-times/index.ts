@@ -12,7 +12,6 @@ import { appointmentsTable, doctorsTable } from "@/db/schema";
 import { generateTimeSlots } from "@/helpers/time";
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
-import { processAvailabilityParallel } from "@/lib/opencl/availability-processor";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -84,12 +83,21 @@ export const getAvailableTimes = actionClient
       );
     });
 
-    // Usar OpenCL para processar disponibilidade em paralelo
-    const availabilityResults = await processAvailabilityParallel({
-      timeSlots: doctorTimeSlots,
-      bookedTimes: appointmentsOnSelectedDate,
-      availableFromTime: doctorAvailableFrom.format("HH:mm:ss"),
-      availableToTime: doctorAvailableTo.format("HH:mm:ss"),
+    // Processar disponibilidade de horários
+    const bookedTimesSet = new Set(appointmentsOnSelectedDate);
+    const availableFromTimeStr = doctorAvailableFrom.format("HH:mm:ss");
+    const availableToTimeStr = doctorAvailableTo.format("HH:mm:ss");
+
+    const availabilityResults = doctorTimeSlots.map((time) => {
+      const isInRange =
+        time >= availableFromTimeStr && time <= availableToTimeStr;
+      const isAvailable = isInRange && !bookedTimesSet.has(time);
+
+      return {
+        value: time,
+        available: isAvailable,
+        label: time.substring(0, 5),
+      };
     });
 
     return availabilityResults;

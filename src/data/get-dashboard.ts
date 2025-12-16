@@ -3,7 +3,6 @@ import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
-import { processStatsParallel } from "@/lib/opencl/stats-processor";
 
 interface Params {
   from: string;
@@ -135,16 +134,49 @@ export const getDashboard = async ({ from, to, session }: Params) => {
       .orderBy(sql`DATE(${appointmentsTable.date})`),
   ]);
 
-  // Processar estatísticas usando OpenCL em paralelo
-  const processedStats = await processStatsParallel({
-    dailyData: dailyAppointmentsData.map((item) => ({
-      date: item.date,
-      appointments: item.appointments,
-      revenue: item.revenue,
-    })),
-    startDate: chartStartDate,
-    endDate: chartEndDate,
-  });
+  // Processar estatísticas
+  const dailyData = dailyAppointmentsData.map((item) => ({
+    date: item.date,
+    appointments: item.appointments,
+    revenue: item.revenue,
+  }));
+
+  const processedStats = (() => {
+    if (dailyData.length === 0) {
+      return {
+        totalRevenue: 0,
+        totalAppointments: 0,
+        averageDailyRevenue: 0,
+        averageDailyAppointments: 0,
+        peakDay: null,
+      };
+    }
+
+    const totalRevenue = dailyData.reduce(
+      (sum, d) => sum + (d.revenue || 0),
+      0,
+    );
+    const totalAppointments = dailyData.reduce(
+      (sum, d) => sum + d.appointments,
+      0,
+    );
+    const averageDailyRevenue = totalRevenue / dailyData.length;
+    const averageDailyAppointments = totalAppointments / dailyData.length;
+
+    const peakDay =
+      dailyData.reduce(
+        (max, d) => ((d.revenue || 0) > (max.revenue || 0) ? d : max),
+        dailyData[0],
+      ) || null;
+
+    return {
+      totalRevenue,
+      totalAppointments,
+      averageDailyRevenue,
+      averageDailyAppointments,
+      peakDay,
+    };
+  })();
 
   return {
     totalRevenue,
@@ -155,6 +187,6 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     topSpecialties,
     todayAppointments,
     dailyAppointmentsData,
-    processedStats, // Estatísticas processadas em paralelo com OpenCL
+    processedStats,
   };
 };
